@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Munnar Trip Budget Tracker</title>
+  <meta name="description" content="Track every rupee spent on our Munnar trip — budget, expenses, categories and charts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#dashboard" class="brand">
+        <span class="brand-mark" aria-hidden="true">🍃</span>
+        <span>Munnar<span class="brand-accent">Trip</span></span>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#add-expense">Add Expense</a>
+        <a href="#categories">Categories</a>
+        <a href="#history">History</a>
+      </nav>
+      <button class="btn btn-ghost btn-sm" id="exportBtn" type="button" title="Export expenses as CSV">
+        <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span>Export CSV</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">Kerala · Western Ghats</p>
+      <h1>Munnar Trip Budget Tracker</h1>
+      <p class="hero-sub">Add an expense in seconds and instantly see how much we've spent and what's left.</p>
+    </div>
+  </section>
+
+  <main class="container main">
+    <!-- Dashboard -->
+    <section id="dashboard" class="section">
+      <div id="budgetAlert" class="alert" role="alert" hidden></div>
+
+      <div class="stats-grid">
+        <article class="stat-card stat-budget">
+          <div class="stat-icon" aria-hidden="true">🎯</div>
+          <div class="stat-body">
+            <p class="stat-label">Total Budget</p>
+            <p class="stat-value" id="statBudget">₹0</p>
+            <button class="link-btn" id="editBudgetBtn" type="button">Set / update budget</button>
+          </div>
+        </article>
+        <article class="stat-card stat-spent">
+          <div class="stat-icon" aria-hidden="true">💸</div>
+          <div class="stat-body">
+            <p class="stat-label">Total Spent</p>
+            <p class="stat-value" id="statSpent">₹0</p>
+            <p class="stat-meta" id="statSpentMeta">No expenses yet</p>
+          </div>
+        </article>
+        <article class="stat-card stat-remaining" id="remainingCard">
+          <div class="stat-icon" aria-hidden="true">👛</div>
+          <div class="stat-body">
+            <p class="stat-label" id="statRemainingLabel">Remaining</p>
+            <p class="stat-value" id="statRemaining">₹0</p>
+            <p class="stat-meta" id="statRemainingMeta">&nbsp;</p>
+          </div>
+        </article>
+        <article class="stat-card stat-count">
+          <div class="stat-icon" aria-hidden="true">🧾</div>
+          <div class="stat-body">
+            <p class="stat-label">Expenses</p>
+            <p class="stat-value" id="statCount">0</p>
+            <p class="stat-meta" id="statCountMeta">&nbsp;</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="card progress-card">
+        <div class="progress-head">
+          <h2 class="card-title">Budget utilization</h2>
+          <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-legend">
+          <span id="progressSpent">₹0 spent</span>
+          <span id="progressBudget">of ₹0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Add expense + charts -->
+    <section class="section two-col">
+      <div id="add-expense" class="card form-card">
+        <div class="card-head">
+          <h2 class="card-title" id="formTitle">Add Expense</h2>
+          <button class="link-btn" id="cancelEditBtn" type="button" hidden>Cancel edit</button>
+        </div>
+
+        <div class="chips" id="quickChips" aria-label="Quick fill">
+          <button type="button" class="chip" data-name="Hotel" data-category="Accommodation">🏨 Hotel</button>
+          <button type="button" class="chip" data-name="Petrol" data-category="Travel">⛽ Petrol</button>
+          <button type="button" class="chip" data-name="Food" data-category="Food">🍛 Food</button>
+          <button type="button" class="chip" data-name="Snacks" data-category="Food">🍪 Snacks</button>
+          <button type="button" class="chip" data-name="Entry Tickets" data-category="Activities">🎟️ Entry Tickets</button>
+          <button type="button" class="chip" data-name="Tea & Spices" data-category="Shopping">🛍️ Tea &amp; Spices</button>
+        </div>
+
+        <form id="expenseForm" novalidate>
+          <input type="hidden" id="expenseId" />
+          <div class="form-row">
+            <div class="field">
+              <label for="expenseName">Expense name</label>
+              <input id="expenseName" type="text" maxlength="60" placeholder="e.g. Hotel, Petrol, Food" required autocomplete="off" />
+              <small class="error" data-for="expenseName"></small>
+            </div>
+            <div class="field">
+              <label for="expenseAmount">Amount (₹)</label>
+              <div class="input-prefix">
+                <span>₹</span>
+                <input id="expenseAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0" required />
+              </div>
+              <small class="error" data-for="expenseAmount"></small>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="expenseCategory">Category</label>
+              <select id="expenseCategory" required></select>
+            </div>
+            <div class="field">
+              <label for="expenseDate">Date</label>
+              <input id="expenseDate" type="date" required />
+              <small class="error" data-for="expenseDate"></small>
+            </div>
+          </div>
+          <div class="field">
+            <label for="expenseNotes">Notes <span class="optional">(optional)</span></label>
+            <textarea id="expenseNotes" rows="2" maxlength="200" placeholder="Anything worth remembering…"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="submitBtn">
+            <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span id="submitLabel">Add Expense</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="card chart-card">
+        <div class="card-head">
+          <h2 class="card-title">Where the money goes</h2>
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab active" data-chart="category" role="tab" aria-selected="true">By category</button>
+            <button type="button" class="tab" data-chart="daily" role="tab" aria-selected="false">By day</button>
+          </div>
+        </div>
+        <div class="chart-wrap" id="chartWrap">
+          <canvas id="mainChart" aria-label="Expense chart"></canvas>
+        </div>
+        <div class="empty-state" id="chartEmpty" hidden>
+          <div class="empty-icon" aria-hidden="true">📊</div>
+          <p class="empty-title">No data to chart yet</p>
+          <p class="empty-text">Charts appear once you add your first expense.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section id="categories" class="section">
+      <h2 class="section-title">Category summary</h2>
+      <div class="category-grid" id="categoryGrid"></div>
+    </section>
+
+    <!-- History -->
+    <section id="history" class="section">
+      <div class="card">
+        <div class="card-head history-head">
+          <h2 class="card-title">Expense history</h2>
+          <div class="history-tools">
+            <input type="search" id="searchInput" placeholder="Search…" aria-label="Search expenses" />
+            <select id="filterCategory" aria-label="Filter by category">
+              <option value="">All categories</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Expense</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th class="num">Amount</th>
+                <th class="actions-col"><span class="sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="expenseRows"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3"><strong id="tableTotalLabel">Total spent</strong></td>
+                <td class="num"><strong id="tableTotal">₹0</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="empty-state" id="historyEmpty" hidden>
+          <div class="empty-icon" aria-hidden="true">🧳</div>
+          <p class="empty-title" id="historyEmptyTitle">No expenses added yet</p>
+          <p class="empty-text" id="historyEmptyText">Start by adding your first Munnar trip expense above.</p>
+          <a href="#add-expense" class="btn btn-primary btn-sm" id="historyEmptyCta">Add first expense</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>🍃 Munnar Trip Budget Tracker · Data is saved in this browser only.</p>
+    </div>
+  </footer>
+
+  <!-- Budget modal -->
+  <div class="modal" id="budgetModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="budgetModalTitle">
+      <h3 id="budgetModalTitle">Set trip budget</h3>
+      <p class="modal-text">Plan your overall Munnar trip budget. Remaining balance updates automatically.</p>
+      <form id="budgetForm" novalidate>
+        <div class="field">
+          <label for="budgetInput">Budget amount (₹)</label>
+          <div class="input-prefix">
+            <span>₹</span>
+            <input id="budgetInput" type="number" inputmode="decimal" min="0" step="1" placeholder="25000" required />
+          </div>
+          <small class="error" data-for="budgetInput"></small>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete confirm modal -->
+  <div class="modal" id="confirmModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h3 id="confirmTitle">Delete expense?</h3>
+      <p class="modal-text" id="confirmText">This can't be undone.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
